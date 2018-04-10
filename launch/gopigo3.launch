@@ -1,3 +1,4 @@
 <launch>
   <node name="gopigo3" pkg="gopigo3_node" type="gopigo3_driver.py" output="screen" />
+    <rosparam command="load" file="$(find gopigo3_node)/params/start.yaml" />
 </launch>

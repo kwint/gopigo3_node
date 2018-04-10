@@ -49,6 +49,9 @@ class Robot:
     def __init__(self):
         #### GoPiGo3 power management
         # export pin
+
+        # rospy.wait_for_message("/pozyx_pose", PoseWithCovariance, 100)
+
         if not os.path.isdir("/sys/class/gpio/gpio"+self.POWER_PIN):
             gpio_export = os.open("/sys/class/gpio/export", os.O_WRONLY)
             os.write(gpio_export, self.POWER_PIN.encode())
@@ -172,7 +175,13 @@ class Robot:
         self.g.offset_motor_encoder(self.MR, self.g.get_motor_encoder(self.MR))
         self.last_encoders = {'l': 0, 'r': 0}
         self.pose = PoseWithCovariance()
-        self.pose.pose.orientation.w = 1
+        self.pose.pose.orientation.x = rospy.get_param("odom_or_x")
+        self.pose.pose.orientation.y = rospy.get_param("odom_or_y")
+        self.pose.pose.orientation.z = rospy.get_param("odom_or_z")
+        self.pose.pose.orientation.w = rospy.get_param("odom_or_w")
+        self.pose.pose.position.x = rospy.get_param("odom_pos_x")
+        self.pose.pose.position.y = rospy.get_param("odom_pos_y")
+        # self.pose.pose.orientation.w = 1
 
     def reset(self, req):
         self.g.reset_all()
@@ -256,10 +265,10 @@ class Robot:
         self.pose.pose.position.x = new_pos[0]
         self.pose.pose.position.y = new_pos[1]
 
-        odom = Odometry(header=Header(stamp=rospy.Time.now(), frame_id="world"), child_frame_id="gopigo",
+        odom = Odometry(header=Header(stamp=rospy.Time.now(), frame_id="odom"), child_frame_id="base_link",
                         pose=self.pose, twist=twist)
 
-        transform = TransformStamped(header=Header(stamp=rospy.Time.now(), frame_id="world"), child_frame_id="gopigo")
+        transform = TransformStamped(header=Header(stamp=rospy.Time.now(), frame_id="odom"), child_frame_id="base_link")
         transform.transform.translation.x = self.pose.pose.position.x
         transform.transform.translation.y = self.pose.pose.position.y
         transform.transform.translation.z = self.pose.pose.position.z
